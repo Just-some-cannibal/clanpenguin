@@ -19,13 +19,25 @@ const (
 )
 
 type client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
+	hub         *Hub
+	conn        *websocket.Conn
+	send        chan *Response
+	numMessages int32
+	muted       bool
+}
+
+func (c *client) sendError(err string) {
+	response := &Response{
+		Protocol: "err",
+		Data:     err,
+	}
+
+	c.send <- response
 }
 
 func (c *client) readPump() {
 	log.Println("Registering Read Pump")
+
 	defer func() {
 		c.hub.unregister <- c
 		c.conn.Close()
@@ -45,18 +57,18 @@ func (c *client) readPump() {
 			break
 		}
 
-		message := &Message{}
+		message := &Request{}
 
 		err = json.Unmarshal(bytes, message)
 
 		if err != nil {
 			log.Println("Invalid format")
-			break
+			continue
 		}
 
 		message.Client = c
 
-		c.hub.broadcast <- bytes
+		c.hub.message <- message
 	}
 }
 
@@ -71,8 +83,9 @@ func (c *client) writePump() {
 
 	for {
 		select {
-		case message, ok := <-c.send:
+		case response, ok := <-c.send:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+
 			log.Println("Sending data")
 			if !ok {
 				return
@@ -84,14 +97,13 @@ func (c *client) writePump() {
 				return
 			}
 
-			w.Write(message)
-
-			n := len(c.send)
-
-			for i := 0; i < n; i++ {
-				w.Write([]byte{'\n'})
-				w.Write(<-c.send)
+			bytes, err := json.Marshal(response)
+			if err != nil {
+				log.Println("Could not marshal the data")
+				continue
 			}
+
+			w.Write(bytes)
 
 			if err := w.Close(); err != nil {
 				return
