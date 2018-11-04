@@ -15,12 +15,10 @@ var upgrader = websocket.Upgrader{
 var hub = newHub()
 
 func serveGame(w http.ResponseWriter, r *http.Request) {
-	log.Println("Serving game")
 	http.ServeFile(w, r, "./views/game.html")
 }
 
 func serveHome(w http.ResponseWriter, r *http.Request) {
-	log.Println("Serving home")
 	http.ServeFile(w, r, "./views/home.html")
 }
 

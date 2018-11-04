@@ -3,6 +3,18 @@ window.onload = function () {
     let chat = document.getElementById("chat");
     let submit = document.getElementById("submit");
     let text = document.getElementById("text");
+    let overlay = document.getElementById("overlay");
+    let overlayEnabled = false;
+    let overlayOK = document.getElementById("overlay-ok");
+
+    function showOverlay(bool) {
+        overlayEnabled = bool;
+        if (bool) {
+            overlay.style.display = "flex";
+        } else {
+            overlay.style.display = "none";
+        }
+    }
 
     function addMessage(user, text) {
         let message = document.createElement("span");
@@ -20,15 +32,33 @@ window.onload = function () {
         text.value = "";
     }
 
+    function handleError(error) {
+        if (error == "spam") {
+            text.disabled = true;
+            setTimeout(function() {
+                text.disabled = false;
+                text.focus();
+                showOverlay(false);
+            }, 5000);
+            showOverlay(true);
+        }
+        console.error(error);
+    }
+
+    overlayOK.onclick = function() {
+        showOverlay(false);
+    }
+
     socket.onmessage = function (e) {
         let response = JSON.parse(e.data);
         if (response.protocol == "err") {
-            console.error(response.data);
+            handleError(response.data);
         } else if (response.protocol == "broadcast") {
             addMessage(response.data.user, response.data.text);
             chat.scrollTop = chat.scrollHeight;
         } else if (response.protocol == "get") {
             for (let message of response.data) {
+                console.log(message)
                 addMessage(message.user, message.text);
             }
             chat.scrollTop = chat.scrollHeight;
@@ -44,8 +74,13 @@ window.onload = function () {
     }
 
     text.addEventListener("keyup", function (e) {
-        if (e.keyCode == 13) {
+        if (e.keyCode == 13 && document) {
             send();
+        }
+    });
+    document.addEventListener("keydown", function(e) {
+        if ((e.keyCode === 27 || e.keyCode === 27) && overlayEnabled) {
+            showOverlay(false);
         }
     });
 }

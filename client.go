@@ -36,7 +36,6 @@ func (c *client) sendError(err string) {
 }
 
 func (c *client) readPump() {
-	log.Println("Registering Read Pump")
 
 	defer func() {
 		c.hub.unregister <- c
@@ -50,10 +49,7 @@ func (c *client) readPump() {
 	for {
 		_, bytes, err := c.conn.ReadMessage()
 
-		log.Println("Received message")
-
 		if err != nil {
-			log.Println("Error receiving message\n", err)
 			break
 		}
 
@@ -62,7 +58,7 @@ func (c *client) readPump() {
 		err = json.Unmarshal(bytes, message)
 
 		if err != nil {
-			log.Println("Invalid format")
+			c.sendError("Invalid json")
 			continue
 		}
 
@@ -73,7 +69,6 @@ func (c *client) readPump() {
 }
 
 func (c *client) writePump() {
-	log.Println("Initializing write pump")
 	ticker := time.NewTicker(pingPeriod)
 
 	defer func() {
@@ -86,20 +81,19 @@ func (c *client) writePump() {
 		case response, ok := <-c.send:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 
-			log.Println("Sending data")
 			if !ok {
 				return
 			}
 
 			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
-				log.Println("Error getting writer\n", err)
 				return
 			}
 
 			bytes, err := json.Marshal(response)
 			if err != nil {
-				log.Println("Could not marshal the data")
+				c.sendError("Internal server error")
+				log.Println(err)
 				continue
 			}
 

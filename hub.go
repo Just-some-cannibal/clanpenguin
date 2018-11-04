@@ -45,7 +45,7 @@ func (h *Hub) pushMessage(message Message) {
 func (h *Hub) broadcast(request *Request) {
 	c := request.Client
 	if c.numMessages == 5 {
-		c.sendError("Too many messages")
+		c.sendError("spam")
 
 		if !c.muted {
 			c.muted = true
@@ -60,6 +60,14 @@ func (h *Hub) broadcast(request *Request) {
 		return
 	}
 
+	if c.numMessages == 0 {
+		go func() {
+			timer := time.NewTimer(5 * time.Second)
+			<-timer.C
+			c.numMessages = 0
+		}()
+	}
+
 	c.numMessages++
 
 	var message = Message{}
@@ -67,12 +75,12 @@ func (h *Hub) broadcast(request *Request) {
 	err := json.Unmarshal(request.Data, &message)
 
 	if err != nil {
-		request.Client.sendError("Internal server error")
+		request.Client.sendError("internal")
 		return
 	}
 
 	if len(message.Text) > 100 || len(message.User) > 20 {
-		c.sendError("Exceeded max message length")
+		c.sendError("maxlength")
 		return
 	}
 

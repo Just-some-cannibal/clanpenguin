@@ -1,26 +1,40 @@
 <!DOCTYPE html>
 
 <html>
-	<head>
-		<title> Home </title>
-    <link rel="stylesheet" href="static/site.css">
-		<script src="static/chatroom.js"></script>
-	</head>
-	<body>	
-    <div class="server-info dark-t">
-        Clanpenguin
-    </div>
-		<div class="channel-info dark-t">
-        wstest
+
+<head>
+	<title> Home </title>
+
+	<link rel="stylesheet" href="static/site.css">
+
+	<script src="static/chatroom.js"></script>
+</head>
+
+<body>
+	<div id="overlay">
+		<div class="overlay-box dark-t">
+			<p>You are sending too many messages</p>
+			<button id="overlay-ok" class="dark-button"> Ok </button>
 		</div>
-		<div class="sidebar dark-s">
-		</div>
-		<div class="info dark-t">
-		</div>
-		<div id="chat" class="dark-p"> </div>
-		<div class="text-container dark-p">
-			<input id="text" class="dark-input">
-			<button id="submit" class="dark-button" style="font-size: 20px; font-weight:bold;"> › </button>
-		</div>
-	</body>
+	</div>
+
+	<div class="server-info dark-t"> Clanpenguin </div>
+
+	<div class="channel-info dark-t"> wstest </div>
+
+
+	<div class="sidebar dark-s"> </div>
+
+	<div class="info dark-t"></div>
+
+
+	<div id="chat" class="dark-p"> </div>
+
+	<div class="text-container dark-p">
+		<input id="text" autocomplete="off" class="dark-input" maxlength="100">
+
+		<button id="submit" class="dark-button" style="font-size: 20px; font-weight:bold;"> › </button>
+	</div>
+</body>
+
 </html>

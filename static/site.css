@@ -34,6 +34,10 @@ body {
   color: hsl(0, 0%, 80%);
 	font-family: Roboto, sans-serif;
 	font-size: 1.1em;
+
+	border: none;
+	margin: 0;
+	padding: 0;
   
   background-color: hsl(0,0%,25%); 
 }
@@ -65,6 +69,7 @@ html {
   overflow-y: scroll;
   overflow-x: wrap;
 }
+
 div.text-container {
 	grid-row: 3 / 5;
 	grid-column: 2;
@@ -85,10 +90,7 @@ div.text-container {
 }
 #submit {
 	border-radius: 0px 10px 10px 0px;
-	border: none;
 	height: 50%;
-	margin: 0;
-	padding: 0;
 	width: 3%;
 }
 
@@ -110,8 +112,59 @@ div.text-container {
   box-sizing: border-box;
 }
 
+#overlay {
+		position: fixed;
+		display: none;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		background-color: hsla(0, 0%, 5%, 0.7);
+		z-index: 2;
+
+		justify-content: center;
+  	align-items: center;
+}
+
+.overlay-box {
+		padding: 30px;
+		width: 30%;
+		height: 15%;
+		border-radius: 10px;
+		display: block;
+		box-sizing: border-box;
+		text-align: center;
+		font-size: 1.25em;
+}
+
+#overlay-ok {
+	width: 40%;
+	height: 40%;
+	border-radius: 5px;
+}
+
 #text:focus {
   outline: none;
+}
+
+#text::-webkit-input-placeholder {
+	content: "message";
+}
+
+#text::placeholder {
+		content: "message";
+}
+
+#text:disabled {
+		background-color: hsl(0, 0%, 30%);
+}
+
+#text:disabled::-webkit-input-placeholder,
+#text:disabled::-moz-placeholder,
+#text:disabled::placeholder {
+		content: "wait before you can send messages"
 }
 
 div.sidebar {
