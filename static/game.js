@@ -78,9 +78,9 @@ class Rect {
 
 rect = new Rect(500,300, 50, 50, "#FF0000")
 rect2 = new Rect(700, 600, 1400, 100)
-rect2.frict = 1;
+rect2.frict = 0.5;
 rect3 = new Rect(800, 300, 300, 100)
-rect3.frict = 1;
+rect3.frict = 0.5;
 class Game {
     constructor (ctx) {
         this.ctx = ctx;
@@ -114,6 +114,11 @@ class Game {
         rect.vy += 5*dt;
       }
       rect.ground = false;
+
+      if(rect.y > this.ctx.canvas.height) rect.y = 0;
+      if(rect.x > this.ctx.canvas.width) rect.x = 0;
+      if(rect.y < 0) rect.y = this.ctx.canvas.height;
+      if(rect.x < 0) rect.x = this.ctx.canvas.width;
     }
   
     RenderLoop() {

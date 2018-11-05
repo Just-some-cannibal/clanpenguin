@@ -32,7 +32,7 @@ func handleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := &client{hub: hub, conn: conn, send: make(chan *Response)}
+	client := &client{hub: hub, conn: conn, send: make(chan *response)}
 	client.hub.register <- client
 	go client.writePump()
 	go client.readPump()

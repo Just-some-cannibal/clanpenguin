@@ -7,16 +7,17 @@ import (
 )
 
 const (
-	reallocnum = 100
+	reallocnum  = 100
+	maxMessages = 5
 )
 
 //Hub contains all necessary info for the server
 type Hub struct {
 	clients    map[*client]bool
-	message    chan *Request
+	message    chan *request
 	register   chan *client
 	unregister chan *client
-	messages   []Message
+	messages   []message
 }
 
 func newHub() *Hub {
@@ -24,27 +25,27 @@ func newHub() *Hub {
 		clients:    make(map[*client]bool),
 		register:   make(chan *client),
 		unregister: make(chan *client),
-		message:    make(chan *Request),
-		messages:   make([]Message, 0, reallocnum),
+		message:    make(chan *request),
+		messages:   make([]message, 0, reallocnum),
 	}
 }
 
 func (h *Hub) reallocMessages(size int) {
-	temp := make([]Message, 0, size)
+	temp := make([]message, 0, size)
 	copy(h.messages, temp)
 	h.messages = temp
 }
 
-func (h *Hub) pushMessage(message Message) {
+func (h *Hub) pushMessage(m message) {
 	if cap(h.messages) < len(h.messages)+1 {
 		h.reallocMessages(cap(h.messages) + reallocnum)
 	}
-	h.messages = append(h.messages, message)
+	h.messages = append(h.messages, m)
 }
 
-func (h *Hub) broadcast(request *Request) {
-	c := request.Client
-	if c.numMessages == 5 {
+func (h *Hub) broadcast(req *request) {
+	c := req.Client
+	if c.numMessages == maxMessages {
 		c.sendError("spam")
 
 		if !c.muted {
@@ -70,30 +71,30 @@ func (h *Hub) broadcast(request *Request) {
 
 	c.numMessages++
 
-	var message = Message{}
+	var m = message{}
 
-	err := json.Unmarshal(request.Data, &message)
+	err := json.Unmarshal(req.Data, &m)
 
 	if err != nil {
-		request.Client.sendError("internal")
+		req.Client.sendError("internal")
 		return
 	}
 
-	if len(message.Text) > 100 || len(message.User) > 20 {
+	if len(m.Text) > 100 || len(m.User) > 20 {
 		c.sendError("maxlength")
 		return
 	}
 
-	h.pushMessage(message)
+	h.pushMessage(m)
 
-	response := &Response{
-		Data:     message,
+	resp := &response{
+		Data:     m,
 		Protocol: "broadcast",
 	}
 
 	for client := range h.clients {
 		select {
-		case client.send <- response:
+		case client.send <- resp:
 		default:
 			delete(h.clients, client)
 			close(client.send)
@@ -101,8 +102,8 @@ func (h *Hub) broadcast(request *Request) {
 	}
 }
 
-func (h *Hub) get(r *Request) {
-	var messages []Message
+func (h *Hub) get(r *request) {
+	var messages []message
 
 	if len(h.messages) > 100 {
 		messages = h.messages[len(h.messages)-100:]
@@ -110,12 +111,12 @@ func (h *Hub) get(r *Request) {
 		messages = h.messages[:]
 	}
 
-	response := &Response{
+	resp := &response{
 		Data:     messages,
 		Protocol: "get",
 	}
 
-	r.Client.send <- response
+	r.Client.send <- resp
 }
 
 //Run is a goroutine that has a handler for all of its channels
@@ -124,10 +125,10 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.register:
-			log.Println("Registering socket")
+			log.Println("Registering ", client.conn.RemoteAddr().String())
 			h.clients[client] = true
 		case client := <-h.unregister:
-			log.Println("Unregistering socket")
+			log.Println("Unregistering ", client.conn.RemoteAddr().String())
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)

@@ -21,18 +21,18 @@ const (
 type client struct {
 	hub         *Hub
 	conn        *websocket.Conn
-	send        chan *Response
+	send        chan *response
 	numMessages int32
 	muted       bool
 }
 
 func (c *client) sendError(err string) {
-	response := &Response{
+	resp := &response{
 		Protocol: "err",
 		Data:     err,
 	}
 
-	c.send <- response
+	c.send <- resp
 }
 
 func (c *client) readPump() {
@@ -53,18 +53,18 @@ func (c *client) readPump() {
 			break
 		}
 
-		message := &Request{}
+		req := &request{}
 
-		err = json.Unmarshal(bytes, message)
+		err = json.Unmarshal(bytes, req)
 
 		if err != nil {
 			c.sendError("Invalid json")
 			continue
 		}
 
-		message.Client = c
+		req.Client = c
 
-		c.hub.message <- message
+		c.hub.message <- req
 	}
 }
 

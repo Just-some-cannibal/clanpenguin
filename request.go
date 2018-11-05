@@ -4,22 +4,22 @@ import (
 	"encoding/json"
 )
 
-// Message is a struct that holds the user message
-type Message struct {
+// message is a struct that holds the user message
+type message struct {
 	Text string `json:"text"`
 	User string `json:"user"`
 }
 
-//Request is a struct that has all information used for a request
-type Request struct {
+//request is a struct that has all information used for a request
+type request struct {
 	Protocol string          `json:"protocol"`
 	Data     json.RawMessage `json:"data"`
 	Auth     string          `json:"auth"`
 	Client   *client         `json:"-"`
 }
 
-//Response is a struct that gives the status code and associated data
-type Response struct {
+//response is a struct that gives the status code and associated data
+type response struct {
 	Protocol string      `json:"protocol"`
 	Data     interface{} `json:"data"`
 }

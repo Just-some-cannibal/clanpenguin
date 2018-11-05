@@ -6,6 +6,7 @@ window.onload = function () {
     let overlay = document.getElementById("overlay");
     let overlayEnabled = false;
     let overlayOK = document.getElementById("overlay-ok");
+    let name = document.getElementById("name");
 
     function showOverlay(bool) {
         overlayEnabled = bool;
@@ -19,15 +20,18 @@ window.onload = function () {
     function addMessage(user, text) {
         let message = document.createElement("span");
         let textNode = document.createTextNode(text);
-        let userNode = document.createTextNode(user);
+        let userText = document.createElement("span")
+        let userNode = document.createTextNode(user + ": ");
+        userText.append(userNode);
         message.className = "message";
+        message.append(userNode);
         message.append(textNode);
         chat.append(message);
     }
 
     function send() {
         if (text.value !== "") {
-            socket.send(JSON.stringify({ data: {user: "", text: text.value}, protocol: "broadcast" }));
+            socket.send(JSON.stringify({ data: {user: name.value, text: text.value}, protocol: "broadcast" }));
         }
         text.value = "";
     }
@@ -55,6 +59,7 @@ window.onload = function () {
             handleError(response.data);
         } else if (response.protocol == "broadcast") {
             addMessage(response.data.user, response.data.text);
+            console.log(response.data.user);
             chat.scrollTop = chat.scrollHeight;
         } else if (response.protocol == "get") {
             for (let message of response.data) {
